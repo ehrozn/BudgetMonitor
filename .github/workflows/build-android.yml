@@ -1,10 +1,8 @@
-name: Build Android APK
+name: Build Android APK (Gradle)
 
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -15,26 +13,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Setup Java
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Setup Expo and EAS
-        uses: expo/expo-github-action@v8
+      - name: Make gradlew executable
+        run: cd android && chmod +x gradlew
+
+      - name: Build debug APK
+        run: cd android && ./gradlew assembleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
         with:
-          expo-version: latest
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build Android with EAS (cloud)
-        run: eas build --platform android --profile preview --non-interactive
+          name: app-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
